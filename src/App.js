@@ -56,7 +56,7 @@ function App() {
         // Fetch forecast for the first city in the returned list
         if (data.data.length > 0) {
           const firstCity = data.data[0];
-          handleGetForecast(firstCity.latitude, firstCity.longitude, 0, firstCity.city, firstCity.stateOrCountry);
+          GetForecast(firstCity.latitude, firstCity.longitude, 0, firstCity.city, firstCity.stateOrCountry);
         }
       }
     } catch (error) {
@@ -67,8 +67,27 @@ function App() {
       setSearchLoading(false); // Stop loading animation
     }
   };
+ // Function to fetch forecast based on latitude and longitude
+  const GetForecast = async (latitude, longitude, index, city, country) => {
+    // Mark the specific forecast as loading
+    setLoadingStates((prev) => ({ ...prev, [index]: true }));
 
-  // Function to fetch forecast based on latitude and longitude
+    try {
+      const forecastData = await fetchWeatherByLocation(latitude, longitude); // Fetch forecast data for the location
+      setForecast(forecastData); // Set the forecast data
+
+      // Update city and country in the context
+      setContextCity(city);
+      setContextCountry(country);
+    } catch (error) {
+      // Catch and log any errors during forecast fetching
+      console.error('Error fetching location forecast:', error);
+    } finally {
+      // Remove the loading state for the current forecast
+      setLoadingStates((prev) => ({ ...prev, [index]: false }));
+    }
+  };
+ 
   const handleGetForecast = async (latitude, longitude, index, city, country) => {
     // Mark the specific forecast as loading
     setLoadingStates((prev) => ({ ...prev, [index]: true }));
@@ -131,7 +150,7 @@ function App() {
                 <p>Geocode: {cityWeather.geocode}</p>
 
                 <button 
-                  onClick={() => handleGetForecast(cityWeather.latitude, cityWeather.longitude, index, cityWeather.city, cityWeather.stateOrCountry)}
+                  onClick={() => GetForecast(cityWeather.latitude, cityWeather.longitude, index, cityWeather.city, cityWeather.stateOrCountry)}
                   className={styles.forecastButton}
                   disabled={loadingStates[index]} // Disable button if loading is in progress
                 >
