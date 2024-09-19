@@ -68,7 +68,7 @@ function App() {
       }
     } catch (error) {
       // Catch any errors during the fetch process and display an error message
-      console.error('Error fetching city weather:', error);
+      setErrorMessage('Error fetching city weather:', error);
       setErrorMessage('An error occurred while fetching the data.');
     } finally {
       setSearchLoading(false); // Stop loading animation
@@ -100,7 +100,7 @@ function App() {
       setContextCountry(country);
     } catch (error) {
       // Catch and log any errors during the forecast fetching
-      console.error('Error fetching location forecast:', error);
+      setErrorMessage('Error fetching location forecast:', error);
     } finally {
       // Clear the loading state for the current forecast
       setLoadingStates((prev) => ({ ...prev, [index]: false }));
