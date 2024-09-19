@@ -5,7 +5,7 @@ import React, { useContext, useEffect, useState, useMemo } from 'react';
 import styles from './App.module.css'; 
 
 // Import functions to fetch weather and forecast data
-import { fetchWeather, fetchWeatherByLocation } from './components/weather';
+import { fetchWeather, fetchWeatherByLocation } from './apis/weather';
 
 // Importing the WeatherForecast component to display forecast data
 import WeatherForecast from './components/WeatherForecast';
