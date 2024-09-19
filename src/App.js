@@ -1,5 +1,5 @@
 // Import React and necessary hooks from the React library
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState, useMemo } from 'react';
 
 // Importing the CSS module for styling
 import styles from './App.module.css'; 
@@ -35,10 +35,17 @@ function App() {
 
   // Sync the city state in the context whenever it changes
   useEffect(() => {
-    setContextCity(city);
-  }, [city]);
+    setContextCity(city); // Update context with the current city value
+  }, [city]); // This effect runs every time the city state changes
 
-  // Function to handle searching for weather data by city
+  /**
+   * Handles the weather search based on the city input
+   * 1. Initiates loading state and resets any previous error messages.
+   * 2. Fetches the weather data from the API for the entered city.
+   * 3. If data is found, it updates the state with the weather data.
+   * 4. Fetches forecast data for the first city in the result, if available.
+   * 5. Handles any errors during the API call and resets the loading state afterward.
+   */
   const handleSearch = async () => {
     setSearchLoading(true); // Start loading animation
     setErrorMessage(''); // Reset error message before new search
@@ -67,46 +74,44 @@ function App() {
       setSearchLoading(false); // Stop loading animation
     }
   };
- // Function to fetch forecast based on latitude and longitude
+
+  /**
+   * Fetches the weather forecast based on latitude and longitude coordinates
+   * 1. Marks the current forecast loading state for the requested index.
+   * 2. Makes an API call to fetch the forecast data for the given location (latitude, longitude).
+   * 3. Updates the state with the forecast data and also updates the context with city and country.
+   * 4. Clears the loading state once the forecast is fetched or if an error occurs.
+   * 
+   * @param {number} latitude - The latitude of the city
+   * @param {number} longitude - The longitude of the city
+   * @param {number} index - The index of the weather list to track loading state
+   * @param {string} city - The name of the city
+   * @param {string} country - The country or state of the city
+   */
   const GetForecast = async (latitude, longitude, index, city, country) => {
-    // Mark the specific forecast as loading
-    setLoadingStates((prev) => ({ ...prev, [index]: true }));
+    setLoadingStates((prev) => ({ ...prev, [index]: true })); // Set the current forecast as loading
 
     try {
-      const forecastData = await fetchWeatherByLocation(latitude, longitude); // Fetch forecast data for the location
-      setForecast(forecastData); // Set the forecast data
+      const forecastData = await fetchWeatherByLocation(latitude, longitude); // Fetch forecast data
+      setForecast(forecastData); // Set the fetched forecast data in state
 
       // Update city and country in the context
       setContextCity(city);
       setContextCountry(country);
     } catch (error) {
-      // Catch and log any errors during forecast fetching
+      // Catch and log any errors during the forecast fetching
       console.error('Error fetching location forecast:', error);
     } finally {
-      // Remove the loading state for the current forecast
+      // Clear the loading state for the current forecast
       setLoadingStates((prev) => ({ ...prev, [index]: false }));
     }
   };
- 
-  const handleGetForecast = async (latitude, longitude, index, city, country) => {
-    // Mark the specific forecast as loading
-    setLoadingStates((prev) => ({ ...prev, [index]: true }));
 
-    try {
-      const forecastData = await fetchWeatherByLocation(latitude, longitude); // Fetch forecast data for the location
-      setForecast(forecastData); // Set the forecast data
+  // Memoize weather data to avoid recalculating the weather state unnecessarily
+  const memoizedWeather = useMemo(() => weather, [weather]);
 
-      // Update city and country in the context
-      setContextCity(city);
-      setContextCountry(country);
-    } catch (error) {
-      // Catch and log any errors during forecast fetching
-      console.error('Error fetching location forecast:', error);
-    } finally {
-      // Remove the loading state for the current forecast
-      setLoadingStates((prev) => ({ ...prev, [index]: false }));
-    }
-  };
+  // Memoize forecast data to prevent unnecessary re-renders when forecast data doesn't change
+  const memoizedForecast = useMemo(() => forecast, [forecast]);
 
   return (
     <div className={styles.appContainer}>
@@ -139,9 +144,9 @@ function App() {
       {/* Section to display weather details and forecast */}
       <div className={styles.weatherForecastContainer}>
         {/* Display the list of weather results */}
-        {weather && weather.length > 0 && (
+        {memoizedWeather && memoizedWeather.length > 0 && (
           <div className={styles.weatherList}>
-            {weather.map((cityWeather, index) => (
+            {memoizedWeather.map((cityWeather, index) => (
               <div key={index} className={styles.weatherDetails}>
                 <h2>Weather Details:</h2>
                 <p>City: {cityWeather.city}</p>
@@ -166,9 +171,9 @@ function App() {
         )}
 
         {/* Display the forecast details when available */}
-        {forecast && weather && (
+        {memoizedForecast && weather && (
           <div className={styles.forecastSection}>
-            <WeatherForecast forecast={forecast} />
+            <WeatherForecast forecast={memoizedForecast} />
           </div>
         )}
       </div>
